@@ -1,0 +1,70 @@
+@startuml
+
+
+title 電文関連のクラス図
+
+namespace Model {
+
+    class WritePacket
+    {
+        - _packetMessage : byte[]
+        + {static} FormCommandType(ICommandType)
+        + ToByteArray()        
+    }
+
+
+    class ReadPacket
+    {
+        - _packetMessage : byte[]
+        + {static} FromCommandType(ICommandType)
+        + ToByteArray()
+    }
+
+
+}
+
+
+namespace Controller {
+    class WritePacketController
+    {
+        + WritePacketController(WritePacket)
+        + CretaeChecksum() : byte[]
+    }
+
+    class ReadPacketController
+    {
+        + ReadPacketController(ReadPacket)
+        + CretaeChecksum() : byte[]
+        + IsValidateChecksum() : bool
+    }
+}
+
+Model.WritePacket -down-> Controller.WritePacketController : Uses >
+
+Model.ReadPacket -down-> Controller.ReadPacketController : Uses >
+
+@enduml
+
+@startuml
+
+package Controller {
+
+    class CommandMessageCollectionController
+    {
+        + Create(DataItem) : CoomandMessageCollection
+    }
+}
+
+
+package Model {
+
+    class CommandMessageCollection
+    {
+        + {field} Items
+    }
+}
+
+CommandMessageCollectionController -up-> CommandMessageCollection : Create >
+
+
+@enduml

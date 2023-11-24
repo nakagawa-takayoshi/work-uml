@@ -1,0 +1,107 @@
+@startuml コマンド書き込みシーケンス
+
+hide footbox
+
+title コマンド書き込みシーケンス
+
+participant root
+participant "KeyboardCountCommand\n（静的メソッド）" as KeyboardCountCommand_s
+
+root -> KeyboardCountCommand_s: Create
+activate root
+    activate KeyboardCountCommand_s
+        create KeyboardCountCommand
+        KeyboardCountCommand_s -> KeyboardCountCommand : new
+        activate KeyboardCountCommand
+        KeyboardCountCommand_s <-- KeyboardCountCommand
+        deactivate KeyboardCountCommand
+
+    root <-- KeyboardCountCommand_s
+
+    deactivate KeyboardCountCommand_s
+
+    root -> WritePacket : FromCommandType
+    activate WritePacket
+        root <-- WritePacket : WritePacket    
+    deactivate WritePacket
+
+    create WritePacketController
+    root -> WritePacketController : new (WritePacket)
+    activate WritePacketController
+        root <-- WritePacketController
+    deactivate WritePacketController
+
+    root -> WritePacketController : CreateChecksum()
+    activate WritePacketController
+        WritePacketController -> WritePacket : AddChecksum()
+        activate WritePacket
+        deactivate WritePacket
+        root <-- WritePacketController : checksum
+    deactivate WritePacketController
+
+    root -> PacketWriter : new
+    activate PacketWriter
+        root <-- PacketWriter
+    deactivate PacketWriter
+
+    root -> PacketWriter : write() : bool
+    activate PacketWriter
+         root <-- PacketWriter
+    deactivate PacketWriter
+
+deactivate root
+@enduml
+
+
+@startuml
+
+hide footbox
+
+title レスポンス読み込みシーケンス
+
+activate root
+create PacketReader
+root -> PacketReader : new (SerialDevice)
+activate PacketReader
+    root <-- PacketReader
+deactivate PacketReader
+
+root -> PacketReader : Read()
+activate PacketReader
+    create ReadPacket
+    PacketReader -> ReadPacket : new 
+    activate ReadPacket
+        PacketReader <-- ReadPacket
+    deactivate ReadPacket
+
+    root <-- PacketReader : ReadPacket
+deactivate PacketReader
+
+
+create ReadPacketController
+root -> ReadPacketController : new (ReadPacket)
+activate ReadPacketController
+    root <-- ReadPacketController
+deactivate ReadPacketController
+
+note right of root
+    電文の有効性のチェック（チェックサムのベリファイ）
+endnote
+
+root -> ReadPacketController : IsValidateMessage() : bool
+activate ReadPacketController
+    root <-- ReadPacketController : result
+deactivate ReadPacketController
+
+
+alt result==false
+    note over of root
+        エラーメッセージを表示する。
+    endnote
+end
+    
+deactivate root
+
+@enduml
+
+
