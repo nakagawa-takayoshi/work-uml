@@ -3,12 +3,15 @@
 
 title 電文関連のクラス図
 
-namespace Model {
+package Model {
 
     class WritePacket
     {
         - _packetMessage : byte[]
-        + {static} FormCommandType(ICommandType)
+        --
+        + Length : byte
+        + OpeCode : byte
+        ==
         + ToByteArray()        
     }
 
@@ -24,24 +27,43 @@ namespace Model {
 }
 
 
-namespace Controller {
+package Controller {
     class WritePacketController
     {
+        - ScannerIoController
         + WritePacketController(WritePacket)
         + CretaeChecksum() : byte[]
     }
 
     class ReadPacketController
     {
+        - ScannerIoController
         + ReadPacketController(ReadPacket)
         + CretaeChecksum() : byte[]
         + IsValidateChecksum() : bool
     }
+
+    class ScannerIoController
+    {
+        + ReadByte() : byte
+        + WriteByte() : bool
+    }
+
+    class ScannerIoControllerFactory
+    {
+        + CreateAndOpen(string) : ScannerIoController
+    }
 }
 
-Model.WritePacket -down-> Controller.WritePacketController : Uses >
+WritePacket -down-> WritePacketController : Uses >
 
-Model.ReadPacket -down-> Controller.ReadPacketController : Uses >
+ReadPacket -down-> ReadPacketController : Uses >
+
+ScannerIoControllerFactory -up-> ScannerIoController : create >
+
+ScannerIoController -up-* WritePacketController : Has >
+
+ScannerIoController -up-* ReadPacketController : Has >
 
 @enduml
 
